@@ -31,20 +31,28 @@ func main() {
 
 	app.Action = func(cc *cli.Context) error {
 		wait := cc.String("wait")
-		waitDuration, err := time.ParseDuration(wait)
-		if err != nil {
-			return err
+		var waitDuration time.Duration
+		if wait != "" {
+			var err error
+			waitDuration, err = time.ParseDuration(wait)
+			if err != nil {
+				return err
+			}
 		}
+
 		message := cc.Args().First()
 		if message == "" {
 			return fmt.Errorf("message should not be blank")
 		}
 		script := fmt.Sprintf("display notification %q", message)
+
 		title := cc.String("title")
 		if title != "" {
 			script += fmt.Sprintf(" with title %q", title)
 		}
+
 		time.Sleep(waitDuration)
+
 		return exec.Command("osascript", "-e", script).Run()
 	}
 
