@@ -10,14 +10,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func tosec() string {
-	d, err := time.ParseDuration(os.Args[1])
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf("%d", d/time.Second)
-}
-
 func main() {
 	app := &cli.App{}
 	app.Usage = "A simple timer command with alerts for MacOS"
