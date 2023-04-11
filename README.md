@@ -7,8 +7,8 @@ NAME:
 USAGE:
    timerlert [global options] message
 
-GLOBAL OPTIONS:
-   --title value, -t value  set notification title
-   --wait value, -w value   waiting time until the alert is displayed
-   --help, -h               show help
+OPTIONS:
+  -h, --help           show help
+  -t, --title string   set notification title
+  -w, --wait string    waiting time until the alert is displayed
 ```

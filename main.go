@@ -7,57 +7,58 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/pflag"
 )
 
 func main() {
-	app := &cli.App{}
-	app.Usage = "A simple timer command with alerts for MacOS"
-	app.HideHelpCommand = true
-	app.ArgsUsage = "message"
+	var (
+		title, wait string
+		help        bool
+	)
+	pflag.StringVarP(&title, "title", "t", "", "set notification title")
+	pflag.StringVarP(&wait, "wait", "w", "", "waiting time until the alert is displayed")
+	pflag.BoolVarP(&help, "help", "h", false, "show help")
+	pflag.Parse()
+	message := pflag.Arg(0)
 
-	app.Flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:    "title",
-			Usage:   "set notification title",
-			Aliases: []string{"t"},
-		},
-		&cli.StringFlag{
-			Name:    "wait",
-			Usage:   "waiting time until the alert is displayed",
-			Aliases: []string{"w"},
-		},
+	if help {
+		fmt.Fprintln(os.Stderr, `NAME:`)
+		fmt.Fprintln(os.Stderr, `   timerlert - A simple timer command with alerts for MacOS`)
+		fmt.Fprintln(os.Stderr, ``)
+		fmt.Fprintln(os.Stderr, `USAGE:`)
+		fmt.Fprintln(os.Stderr, `   timerlert [global options] message`)
+		fmt.Fprintln(os.Stderr, ``)
+		fmt.Fprintln(os.Stderr, `OPTIONS:`)
+		pflag.PrintDefaults()
+		return
 	}
 
-	app.Action = func(cc *cli.Context) error {
-		wait := cc.String("wait")
-		var waitDuration time.Duration
-		if wait != "" {
-			var err error
-			waitDuration, err = time.ParseDuration(wait)
-			if err != nil {
-				return err
-			}
-		}
-
-		message := cc.Args().First()
-		if message == "" {
-			return fmt.Errorf("message should not be blank")
-		}
-		script := fmt.Sprintf("display notification %q", message)
-
-		title := cc.String("title")
-		if title != "" {
-			script += fmt.Sprintf(" with title %q", title)
-		}
-
-		time.Sleep(waitDuration)
-
-		return exec.Command("osascript", "-e", script).Run()
-	}
-
-	err := app.Run(os.Args)
+	err := run(message, title, wait)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func run(message, title, wait string) error {
+	var waitDuration time.Duration
+	if wait != "" {
+		var err error
+		waitDuration, err = time.ParseDuration(wait)
+		if err != nil {
+			return err
+		}
+	}
+
+	if message == "" {
+		return fmt.Errorf("message should not be blank")
+	}
+	script := fmt.Sprintf("display notification %q", message)
+
+	if title != "" {
+		script += fmt.Sprintf(" with title %q", title)
+	}
+
+	time.Sleep(waitDuration)
+
+	return exec.Command("osascript", "-e", script).Run()
 }
